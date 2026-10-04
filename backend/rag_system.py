@@ -118,19 +118,20 @@ class RAGSystem:
         if session_id:
             history = self.session_manager.get_conversation_history(session_id)
         
-        # Generate response using AI with tools
-        response = self.ai_generator.generate_response(
-            query=prompt,
-            conversation_history=history,
-            tools=self.tool_manager.get_tool_definitions(),
-            tool_manager=self.tool_manager
-        )
-        
-        # Get sources from the search tool
-        sources = self.tool_manager.get_last_sources()
-
-        # Reset sources after retrieving them
-        self.tool_manager.reset_sources()
+        try:
+            # Generate response using AI with tools
+            response = self.ai_generator.generate_response(
+                query=prompt,
+                conversation_history=history,
+                tools=self.tool_manager.get_tool_definitions(),
+                tool_manager=self.tool_manager
+            )
+            
+            # Get sources from the search tool
+            sources = self.tool_manager.get_last_sources()
+        finally:
+            # Reset sources even on failure so they don't leak into the next query
+            self.tool_manager.reset_sources()
         
         # Update conversation history
         if session_id:
